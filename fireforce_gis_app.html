@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FireForce GIS & Inspection Dashboard</title>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+
+<style>
+body{font-family:Arial,sans-serif;margin:0;background:#f4f6f8;color:#1a1a1a}
+header{background:#0f2a44;color:white;padding:40px;text-align:center}
+main{max-width:1100px;margin:auto;padding:30px}
+section{background:white;margin-bottom:25px;padding:25px;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,0.06)}
+h2{margin-top:0;color:#0f2a44}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.card{background:#f9fbfc;padding:20px;border-radius:10px;border-left:5px solid #0f2a44}
+#map{height:400px;border-radius:10px;margin-top:10px}
+canvas{max-width:100%;margin-top:20px}
+.blockchain{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.block{background:#0f2a44;color:white;padding:15px;border-radius:8px;min-width:120px;text-align:center;position:relative}
+.block:after{content:"→";position:absolute;right:-15px;top:50%;transform:translateY(-50%);color:#0f2a44;font-size:20px}
+.block:last-child:after{display:none}
+footer{text-align:center;padding:20px;font-size:14px;color:#666}
+input,button{padding:10px;margin:5px;border-radius:5px;border:1px solid #ccc}
+</style>
+</head>
+<body>
+
+<header>
+<h1>FireForce GIS & Inspection Dashboard</h1>
+<p>Multi-Station Database Prototype with Maps, Charts, and Blockchain Logging</p>
+</header>
+
+<main>
+
+<section>
+<h2>Login (Fire Stations)</h2>
+<input type="email" id="email" placeholder="Email" />
+<input type="password" id="password" placeholder="Password" />
+<button onclick="login()">Login</button>
+<p id="loginStatus"></p>
+</section>
+
+<section>
+<h2>Submit Inspection</h2>
+<input type="text" id="stationName" placeholder="Station Name" />
+<input type="text" id="assetStatus" placeholder="Asset Status" />
+<input type="text" id="hydrantStatus" placeholder="Hydrant Status" />
+<button onclick="submitInspection()">Submit</button>
+<p id="submitStatus"></p>
+</section>
+
+<section>
+<h2>🗺 Fire Stations GIS Map</h2>
+<div id="map"></div>
+</section>
+
+<section>
+<h2>📊 Inspection Dashboard</h2>
+<canvas id="inspectionChart"></canvas>
+</section>
+
+<section>
+<h2>🔗 Blockchain Logging Simulation</h2>
+<div class="blockchain" id="blockchain">
+<div class="block">Genesis</div>
+</div>
+</section>
+
+<footer>
+<p>Prototype: FireForce GIS & Inspection Dashboard | Multi-Station Access</p>
+</footer>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// Initialize Firebase (replace with your config)
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_ID",
+  appId: "YOUR_APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+// Login function
+function login(){
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  auth.signInWithEmailAndPassword(email,password)
+    .then(()=> document.getElementById('loginStatus').innerText='Logged in successfully')
+    .catch(err=> document.getElementById('loginStatus').innerText='Error: '+err.message);
+}
+
+// Submit Inspection
+function submitInspection(){
+  const stationName = document.getElementById('stationName').value;
+  const assetStatus = document.getElementById('assetStatus').value;
+  const hydrantStatus = document.getElementById('hydrantStatus').value;
+  const timestamp = new Date().toISOString();
+
+  // Hash simulation
+  const hash = btoa(stationName + assetStatus + hydrantStatus + timestamp);
+
+  db.collection('inspections').add({stationName,assetStatus,hydrantStatus,timestamp,hash})
+    .then(docRef=>{
+      document.getElementById('submitStatus').innerText='Inspection submitted!';
+      addBlockToChain(stationName,hash);
+      updateDashboard();
+      updateMap();
+    })
+    .catch(err=> document.getElementById('submitStatus').innerText='Error: '+err.message);
+}
+
+// Blockchain visualization
+function addBlockToChain(station,hash){
+  const chain = document.getElementById('blockchain');
+  const block = document.createElement('div');
+  block.className='block';
+  block.innerText=station+'\n'+hash.substring(0,8)+'...';
+  chain.appendChild(block);
+}
+
+// Initialize Map
+const map = L.map('map').setView([12.8797,121.7740],5);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'Map data © OpenStreetMap contributors'}).addTo(map);
+
+function updateMap(){
+  db.collection('inspections').get().then(snapshot=>{
+    snapshot.forEach(doc=>{
+      const data = doc.data();
+      const lat = 12.8797 + Math.random(); // Placeholder random coordinates
+      const lng = 121.7740 + Math.random();
+      L.marker([lat,lng]).addTo(map).bindPopup(data.stationName+'<br>'+data.assetStatus+' | '+data.hydrantStatus);
+    });
+  });
+}
+updateMap();
+
+// Initialize Dashboard
+const ctx = document.getElementById('inspectionChart');
+const inspectionChart = new Chart(ctx,{
+  type:'bar',
+  data:{labels:[],datasets:[{label:'Inspections',data:[],backgroundColor:'#0f2a44'}]},
+  options:{responsive:true}
+});
+
+function updateDashboard(){
+  db.collection('inspections').get().then(snapshot=>{
+    const labels=[];
+    const counts={};
+    snapshot.forEach(doc=>{
+      const station=doc.data().stationName;
+      counts[station]=counts[station]?counts[station]+1:1;
+    });
+    Object.keys(counts).forEach(k=>labels.push(k));
+    inspectionChart.data.labels=labels;
+    inspectionChart.data.datasets[0].data=Object.values(counts);
+    inspectionChart.update();
+  });
+}
+updateDashboard();
+
+</script>
+
+</body>
+</html>
