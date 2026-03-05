@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IST Governance Framework Integration</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f4f6f8;color:#1a1a1a}
+header{background:#0f2a44;color:white;padding:40px;text-align:center}
+main{max-width:1100px;margin:auto;padding:30px}
+section{background:white;margin-bottom:25px;padding:25px;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,0.06)}
+h2{margin-top:0;color:#0f2a44}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.card{background:#f9fbfc;padding:20px;border-radius:10px;border-left:5px solid #0f2a44}
+#map{height:400px;border-radius:10px}
+canvas{max-width:100%;}
+.chain{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.block{background:#0f2a44;color:white;padding:15px;border-radius:8px;min-width:120px;text-align:center;position:relative}
+.block:after{content:"→";position:absolute;right:-15px;top:50%;transform:translateY(-50%);color:#0f2a44;font-size:20px}
+.block:last-child:after{display:none}
+footer{text-align:center;padding:20px;font-size:14px;color:#666}
+</style>
+</head>
+<body>
+
+<header>
+<h1>IST Solutions Integrated with Anti-Corruption Governance</h1>
+<p>Interactive Prototype with Dashboards, GIS Monitoring, and Blockchain Visualization</p>
+</header>
+
+<main>
+
+<section>
+<h2>Overview</h2>
+<p>
+This prototype demonstrates how Information Systems Technology solutions can integrate with governance frameworks to strengthen transparency and accountability. It combines operational tools with analytics dashboards, geographic monitoring, and blockchain-backed institutional memory.
+</p>
+</section>
+
+<section>
+<h2>Operational IST Systems</h2>
+<div class="grid">
+
+<div class="card">
+<h3>BJMP Health-Link Portal</h3>
+<p>Centralized medical and mental health reporting platform for custodial facilities.</p>
+<p><strong>Blockchain Role:</strong> Hash anchoring of outbreak reports and health alerts.</p>
+</div>
+
+<div class="card">
+<h3>FireForce GIS & Scheduler</h3>
+<p>Geographic inspection scheduling and fire safety asset monitoring.</p>
+<p><strong>Blockchain Role:</strong> Timestamped inspection verification records.</p>
+</div>
+
+<div class="card">
+<h3>Secure-Gate & Ledger</h3>
+<p>Biometric identity verification and digital commissary ledger.</p>
+<p><strong>Blockchain Role:</strong> Immutable financial transaction records.</p>
+</div>
+
+</div>
+</section>
+
+<section>
+<h2>📊 Governance Transparency Dashboard</h2>
+<canvas id="healthChart"></canvas>
+</section>
+
+<section>
+<h2>🗺 Fire Safety GIS Monitoring</h2>
+<div id="map"></div>
+</section>
+
+<section>
+<h2>🔗 Blockchain Governance Ledger Simulation</h2>
+<p>Each block represents a hashed governance event anchored to the BAYANIHAN Ledger.</p>
+<div class="chain">
+<div class="block">Genesis</div>
+<div class="block">Outbreak Report</div>
+<div class="block">Fire Inspection</div>
+<div class="block">Commissary Tx</div>
+<div class="block">Visitor Log</div>
+</div>
+</section>
+
+<section>
+<h2>Strategic Governance Roadmap</h2>
+<ol>
+<li><strong>Phase 1:</strong> Digitalization of operational data.</li>
+<li><strong>Phase 2:</strong> Blockchain anchoring of governance events.</li>
+<li><strong>Phase 3:</strong> Automated compliance monitoring.</li>
+<li><strong>Phase 4:</strong> Predictive corruption risk analytics.</li>
+</ol>
+</section>
+
+</main>
+
+<footer>
+<p>Academic Prototype | Information Systems Architecture Concept Map</p>
+</footer>
+
+<script>
+
+// Dashboard Chart
+const ctx = document.getElementById('healthChart');
+
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ['Region 1','Region 2','Region 3','Region 4','Region 5'],
+        datasets: [{
+            label: 'Reported Health Incidents',
+            data: [12, 19, 7, 15, 9]
+        }]
+    },
+    options: {
+        responsive:true
+    }
+});
+
+// GIS Map
+const map = L.map('map').setView([14.5995,120.9842],6);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution:'Map data © OpenStreetMap contributors'
+}).addTo(map);
+
+// Example fire stations
+L.marker([14.5995,120.9842]).addTo(map).bindPopup('Manila Fire Station');
+L.marker([10.3157,123.8854]).addTo(map).bindPopup('Cebu Fire Station');
+L.marker([7.1907,125.4553]).addTo(map).bindPopup('Davao Fire Station');
+
+</script>
+
+</body>
+</html>
