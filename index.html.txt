@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>FireForce GIS + Blockchain Survey System</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=visualization"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{font-family:Arial;margin:0;background:#f4f6f8}
+header{background:#0f2a44;color:white;padding:20px;text-align:center}
+.container{padding:20px}
+#map{height:400px;margin-bottom:20px}
+.hidden{display:none}
+.card{background:white;padding:20px;margin-bottom:20px;border-radius:10px}
+button{padding:10px 15px;margin-top:10px}
+input{padding:8px;width:100%;margin:5px 0}
+</style>
+</head>
+
+<body>
+
+<header>
+<h2>FireForce GIS + Blockchain Governance System</h2>
+</header>
+
+<div class="container">
+
+<!-- LOGIN -->
+<div id="loginDiv" class="card">
+<h3>Login</h3>
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Password">
+<button onclick="login()">Login</button>
+</div>
+
+<!-- MAIN SYSTEM -->
+<div id="mainSystem" class="hidden">
+
+<div id="map"></div>
+
+<div class="card">
+<h3>Submit Survey</h3>
+<select id="score">
+<option value="1">1 - Strongly Disagree</option>
+<option value="2">2 - Disagree</option>
+<option value="3">3 - Neutral</option>
+<option value="4">4 - Agree</option>
+<option value="5">5 - Strongly Agree</option>
+</select>
+<button onclick="submitSurvey()">Submit</button>
+</div>
+
+<div class="card">
+<h3>Live Dashboard</h3>
+<canvas id="chart"></canvas>
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+// ================= FIREBASE =================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "YOUR_FIREBASE_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+const db = getFirestore();
+
+// ================= LOGIN =================
+function login(){
+  const email = document.getElementById("email").value;
+  const pass = document.getElementById("password").value;
+
+  signInWithEmailAndPassword(auth,email,pass)
+  .then(()=>{
+    document.getElementById("loginDiv").classList.add("hidden");
+    document.getElementById("mainSystem").classList.remove("hidden");
+    initMap();
+  });
+}
+
+// ================= MAP =================
+let map;
+let heatmap;
+let heatData = [];
+
+function initMap(){
+  map = new google.maps.Map(document.getElementById("map"), {
+    zoom:6,
+    center:{lat:12.8797,lng:121.7740}
+  });
+
+  heatmap = new google.maps.visualization.HeatmapLayer({
+    data: heatData
+  });
+
+  heatmap.setMap(map);
+
+  loadSurveyData();
+}
+
+// ================= FIREBASE REALTIME =================
+function submitSurvey(){
+  const score = parseInt(document.getElementById("score").value);
+
+  navigator.geolocation.getCurrentPosition(pos=>{
+    addDoc(collection(db,"survey"),{
+      score:score,
+      lat:pos.coords.latitude,
+      lng:pos.coords.longitude,
+      timestamp:Date.now()
+    });
+  });
+}
+
+// ================= LIVE DATA =================
+let chart;
+
+function loadSurveyData(){
+
+  onSnapshot(collection(db,"survey"), (snapshot)=>{
+
+    let scores = [];
+    heatData = [];
+
+    snapshot.forEach(doc=>{
+      const d = doc.data();
+
+      scores.push(d.score);
+
+      heatData.push(new google.maps.LatLng(d.lat,d.lng));
+    });
+
+    // UPDATE HEATMAP
+    heatmap.setData(heatData);
+
+    // UPDATE CHART
+    updateChart(scores);
+  });
+}
+
+// ================= CHART =================
+function updateChart(scores){
+
+  const avg = scores.reduce((a,b)=>a+b,0)/scores.length || 0;
+
+  if(!chart){
+    const ctx = document.getElementById("chart");
+
+    chart = new Chart(ctx,{
+      type:'bar',
+      data:{
+        labels:['Average Score'],
+        datasets:[{
+          label:'Survey Result',
+          data:[avg]
+        }]
+      }
+    });
+  }else{
+    chart.data.datasets[0].data = [avg];
+    chart.update();
+  }
+}
+
+</script>
+
+</body>
+</html>
